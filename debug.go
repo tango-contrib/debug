@@ -1,6 +1,8 @@
 package debug
 
 import (
+	"strings"
+
 	"github.com/lunny/tango"
 )
 
@@ -14,19 +16,66 @@ func (b *bufferWriter) Write(bs []byte) (int, error) {
 	return b.ResponseWriter.Write(bs)
 }
 
-func Debug() tango.HandlerFunc {
+type Options struct {
+	HideRequest      bool
+	HideRequestHead  bool
+	HideRequestBody  bool
+	HideResponse     bool
+	HideResponseHead bool
+	HideResponseBody bool
+	IgnorePrefix     string
+}
+
+func prepareOptions(opts []Options) Options {
+	var opt Options
+	if len(opts) > 0 {
+		opt = opts[0]
+	}
+	return opt
+}
+
+func Debug(options ...Options) tango.HandlerFunc {
 	return func(ctx *tango.Context) {
+		opt := prepareOptions(options)
+
+		if opt.HideRequest && opt.HideResponse {
+			ctx.Next()
+			return
+		}
+		if len(opt.IgnorePrefix) > 0 && strings.HasPrefix(ctx.Req().URL.Path, opt.IgnorePrefix) {
+			ctx.Next()
+			return
+		}
+
+		if !opt.HideRequest {
+			ctx.Debug("[debug] request:", ctx.Req().Method, ctx.Req().URL, ctx.Req().RemoteAddr)
+			if !opt.HideRequestHead {
+				ctx.Debug("[debug] head:", ctx.Req().Header)
+			}
+			if !opt.HideRequestBody {
+				//ctx.Debug("[debug] body:", ctx.Req().Body)
+			}
+			ctx.Debug("[debug] ----------------------- end request")
+		}
+
 		buf := &bufferWriter{
 			ctx.ResponseWriter,
 			make([]byte, 0),
 		}
 		ctx.ResponseWriter = buf
 
-		ctx.Debug("[debug] request:", ctx.Req().Method, ctx.Req().URL, ctx.Req().RemoteAddr)
-
 		ctx.Next()
 
-		ctx.Debug("[debug] result:", ctx.Status(), string(buf.content))
+		if !opt.HideResponse {
+			ctx.Debug("[debug] response ------------------", ctx.Status())
+			if !opt.HideRequestHead {
+				ctx.Debug("[debug] head:", buf.ResponseWriter.Header())
+			}
+			if !opt.HideResponseBody {
+				ctx.Debug("[debug] body:", string(buf.content))
+			}
+			ctx.Debug("[debug] ----------------------- end response")
+		}
 
 		ctx.ResponseWriter = buf.ResponseWriter
 	}
