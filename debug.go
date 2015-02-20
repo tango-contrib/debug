@@ -1,6 +1,8 @@
 package debug
 
 import (
+	"bytes"
+	"io/ioutil"
 	"strings"
 
 	"github.com/lunny/tango"
@@ -53,7 +55,11 @@ func Debug(options ...Options) tango.HandlerFunc {
 				ctx.Debug("[debug] head:", ctx.Req().Header)
 			}
 			if !opt.HideRequestBody {
-				//ctx.Debug("[debug] body:", ctx.Req().Body)
+				requestbody, _ := ioutil.ReadAll(ctx.Req().Body)
+				ctx.Req().Body.Close()
+				bf := bytes.NewBuffer(requestbody)
+				ctx.Req().Body = ioutil.NopCloser(bf)
+				ctx.Debug("[debug] body:", string(requestbody))
 			}
 			ctx.Debug("[debug] ----------------------- end request")
 		}
