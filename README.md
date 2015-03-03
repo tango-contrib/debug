@@ -20,8 +20,20 @@ func (c *DebugAction) Get() {
 
 func main() {
     t := tango.Classic()
-    t.Use(events.Events())
-    t.Get("/", new(EventAction))
+    t.Use(debug.Debug())
+    t.Get("/", new(DebugAction))
     t.Run()
 }
+```
+
+When you run this, then you will find debug info on console or log file, it will show you the request detail info and response detail.
+
+```
+[tango] 2015/03/04 06:44:06 [Debug] debug.go:53 [debug] request: GET http://localhost:3000/
+[tango] 2015/03/04 06:44:06 [Debug] debug.go:55 [debug] head: map[]
+[tango] 2015/03/04 06:44:06 [Debug] debug.go:66 [debug] ----------------------- end request
+[tango] 2015/03/04 06:44:06 [Debug] debug.go:78 [debug] response ------------------ 200
+[tango] 2015/03/04 06:44:06 [Debug] debug.go:80 [debug] head: map[]
+[tango] 2015/03/04 06:44:06 [Debug] debug.go:83 [debug] body: debug
+[tango] 2015/03/04 06:44:06 [Debug] debug.go:85 [debug] ----------------------- end response
 ```
