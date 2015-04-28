@@ -1,11 +1,15 @@
+// Copyright 2015 The Tango Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package debug
 
 import (
-	"testing"
 	"bytes"
 	"net/http"
-	"reflect"
 	"net/http/httptest"
+	"reflect"
+	"testing"
 
 	"github.com/lunny/tango"
 )
@@ -17,7 +21,7 @@ func TestDebug(t *testing.T) {
 
 	tg := tango.New()
 	tg.Use(Debug(), tango.Return())
-	tg.Get("/", func() string{
+	tg.Get("/", func() string {
 		return "debug"
 	})
 

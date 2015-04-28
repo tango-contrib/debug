@@ -37,3 +37,7 @@ When you run this, then you will find debug info on console or log file, it will
 [tango] 2015/03/04 06:44:06 [Debug] debug.go:83 [debug] body: debug
 [tango] 2015/03/04 06:44:06 [Debug] debug.go:85 [debug] ----------------------- end response
 ```
+
+## License
+
+This project is under BSD License. See the [LICENSE](LICENSE) file for the full license text.
