@@ -7,6 +7,7 @@ package debug
 import (
 	"bytes"
 	"io/ioutil"
+	"net/http"
 	"strings"
 
 	"github.com/lunny/tango"
@@ -23,13 +24,15 @@ func (b *bufferWriter) Write(bs []byte) (int, error) {
 }
 
 type Options struct {
-	HideRequest      bool
-	HideRequestHead  bool
-	HideRequestBody  bool
-	HideResponse     bool
-	HideResponseHead bool
-	HideResponseBody bool
-	IgnorePrefix     string
+	HideRequest         bool
+	HideRequestHead     bool
+	HideRequestBody     bool
+	HideResponse        bool
+	HideResponseHead    bool
+	HideResponseBody    bool
+	IgnorePrefix        string
+	IgnoreContentTypes  []string
+	HideRequestBodyFunc func(http.Header) bool
 }
 
 func prepareOptions(opts []Options) Options {
@@ -54,11 +57,20 @@ func Debug(options ...Options) tango.HandlerFunc {
 		}
 
 		if !opt.HideRequest {
-			ctx.Debug("[debug] request:", ctx.Req().Method, ctx.Req().URL, ctx.Req().RemoteAddr)
+			ctx.Debug("[debug] request:", ctx.Req().Method, ctx.Req().URL, ctx.IP())
+
 			if !opt.HideRequestHead {
 				ctx.Debug("[debug] head:", ctx.Req().Header)
 			}
-			if !opt.HideRequestBody {
+
+			var ignoreBody = opt.HideRequestBody
+			if opt.HideRequestBodyFunc != nil {
+				if opt.HideRequestBodyFunc(ctx.Req().Header) {
+					ignoreBody = true
+				}
+			}
+
+			if !ignoreBody {
 				if ctx.Req().Body != nil {
 					requestbody, _ := ioutil.ReadAll(ctx.Req().Body)
 					ctx.Req().Body.Close()
@@ -79,6 +91,14 @@ func Debug(options ...Options) tango.HandlerFunc {
 		ctx.Next()
 
 		if !opt.HideResponse {
+			if len(opt.IgnoreContentTypes) > 0 {
+				for _, tp := range opt.IgnoreContentTypes {
+					if strings.HasPrefix(ctx.Header().Get("Content-Type"), tp) {
+						goto end
+					}
+				}
+			}
+
 			ctx.Debug("[debug] response ------------------", ctx.Status())
 			if !opt.HideRequestHead {
 				ctx.Debug("[debug] head:", buf.ResponseWriter.Header())
@@ -89,6 +109,7 @@ func Debug(options ...Options) tango.HandlerFunc {
 			ctx.Debug("[debug] ----------------------- end response")
 		}
 
+	end:
 		ctx.ResponseWriter = buf.ResponseWriter
 	}
 }
