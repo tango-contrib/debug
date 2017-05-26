@@ -1,4 +1,4 @@
-debug [![Build Status](https://drone.io/github.com/tango-contrib/debug/status.png)](https://drone.io/github.com/tango-contrib/debug/latest) [![](http://gocover.io/_badge/github.com/tango-contrib/debug)](http://gocover.io/github.com/tango-contrib/debug)
+debug [![CircleCI](https://circleci.com/gh/tango-contrib/debug/tree/master.svg?style=svg)](https://circleci.com/gh/tango-contrib/debug/tree/master) [![](http://gocover.io/_badge/github.com/tango-contrib/debug)](http://gocover.io/github.com/tango-contrib/debug)
 ======
 
 Middleware debug is a debug middleware for [Tango](https://github.com/lunny/tango). 
